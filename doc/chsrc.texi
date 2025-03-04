@@ -6,19 +6,19 @@
 @c Contributors  :  Nul None  <nul@none.org>
 @c               |
 @c Created On    : <2024-08-22>
-@c Last Modified : <2024-08-23>
+@c Last Modified : <2024-10-09>
 @c --------------------------------------------------------------
 
 \input texinfo
 @setfilename chsrc.info
 @settitle chsrc
 
-@set Chsrc_Version v0.1.7.4
-@set Doc_Publish_Date 2024-08-23
+@set Chsrc_Version v0.1.9
+@set Doc_Publish_Date 2024-10-09
 
 @copying
 @comment 这是软件copyright，不是文档copyright，因此不放在titlepage
-Copyright @copyright{} 2024 Aoran Zeng, Heng Guo
+Copyright @copyright{} 2025 Aoran Zeng, Heng Guo
 @end copying
 
 @titlepage

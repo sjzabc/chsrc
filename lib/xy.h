@@ -1,14 +1,14 @@
 /** ------------------------------------------------------------
- * Copyright © 2023-2024 Aoran Zeng, Heng Guo
+ * Copyright © 2023-2025 Aoran Zeng, Heng Guo
  * SPDX-License-Identifier: MIT
  * -------------------------------------------------------------
  * Lib Name      : xy.h
  * Lib Authors   : Aoran Zeng <ccmywish@qq.com>
  *               |  Heng Guo  <2085471348@qq.com>
- * Contributors  :  Nil Null  <nil@null.org>
+ * Contributors  :   juzeon   <skyjuzheng@gmail.com>
  *               |
  * Created On    : <2023-08-28>
- * Last Modified : <2024-08-23>
+ * Last Modified : <2024-12-14>
  *
  * xy: 襄阳、咸阳
  * Corss-Platform C utilities for CLI applications in Ruby flavor
@@ -17,7 +17,7 @@
 #ifndef XY_H
 #define XY_H
 
-#define _XY_Version      "v0.1.4.2-2024/08/23"
+#define _XY_Version      "v0.1.4.4-2024/12/14"
 #define _XY_Maintain_URL "https://gitee.com/RubyMetric/chsrc/blob/main/include/xy.h"
 
 #include <assert.h>
@@ -75,16 +75,17 @@ bool xy_enable_color = true;
 void putf (double n)         { printf ("%f\n", n);   }
 void puti (long long n)      { printf ("%lld\n", n); }
 void putb (bool n)           { if (n) puts ("true"); else puts ("false"); }
-void print (const char *s)   { printf ("%s", s);  }
-void println (const char *s) { printf ("%s\n", s);}
-void say (const char *s)     { printf ("%s\n", s);}
-void br ()                   { puts ("");}
+void print (const char *s)   { printf ("%s", s);   }
+void println (const char *s) { printf ("%s\n", s); }
+void say (const char *s)     { printf ("%s\n", s); }
+void br ()                   { puts (""); }
+void p (const char *s)       { printf ("%s\n", s); }
 
 #define assert_str(a, b) assert (xy_streql ((a), (b)))
 
-#define xy_unsupport   assert(!"Unsuppoted")
-#define xy_unimplement assert(!"Unimplemented temporarily")
-#define xy_unreach     assert(!"This code shouldn't be reached")
+#define xy_unsupported()    assert(!"Unsuppoted")
+#define xy_unimplemented()  assert(!"Unimplemented temporarily")
+#define xy_unreached()      assert(!"This code shouldn't be reached")
 
 #define xy_arylen(x) (sizeof (x) / sizeof (x[0]))
 
@@ -604,7 +605,7 @@ _xy_log_brkt (int level, const char *prompt1, const char *prompt2, const char *c
  * 由于目标行会被返回出来，所以 iter_func() 并不执行目标行，只会执行遍历过的行
  */
 static char *
-xy_run (const char *cmd,  unsigned long n,  void (*iter_func) (const char *))
+xy_run_iter (const char *cmd,  unsigned long n,  void (*iter_func) (const char *))
 {
   const int size = 512;
   char *buf = (char *) malloc (size);
@@ -623,7 +624,8 @@ xy_run (const char *cmd,  unsigned long n,  void (*iter_func) (const char *))
     {
       if (NULL == fgets (buf, size, stream))
         break;
-      ret = buf;
+      /* 存在换行的总是会把换行符读出来，删掉 */
+      ret = xy_str_delete_suffix (buf, "\n");
       count += 1;
       if (n == count)
         break;
@@ -636,6 +638,13 @@ xy_run (const char *cmd,  unsigned long n,  void (*iter_func) (const char *))
   pclose (stream);
   return ret;
 }
+
+static char *
+xy_run (const char *cmd, unsigned long n)
+{
+  return xy_run_iter (cmd, n, NULL);
+}
+
 
 #define xy_os_home _xy_os_home ()
 static char *
@@ -666,6 +675,10 @@ _xy_win_powershellv5_profile ()
       "\\Documents\\WindowsPowerShell\\Microsoft.PowerShell_profile.ps1");
 }
 
+#define xy_zshrc  "~/.zshrc"
+#define xy_bashrc "~/.bashrc"
+#define xy_fishrc "~/.config/fish/config.fish"
+
 /**
  * @note Windows上，`path` 不要夹带变量名，因为最终 access() 不会帮你转换
  */
@@ -683,7 +696,7 @@ xy_file_exist (const char *path)
 
 /**
  * @note xy_file_exist() 和 xy_dir_exist() 两个函数在所有平台默认都支持使用 '~'，
- *       但实现中都没有调用 xy_uniform_path()，以防万一，调用前可能需要用户手动调用它
+ *       但实现中都没有调用 xy_normalize_path()，以防万一，调用前可能需要用户手动调用它
  */
 static bool
 xy_dir_exist (const char *path)
@@ -730,14 +743,14 @@ xy_dir_exist (const char *path)
 }
 
 /**
- * 该函数即使在非Windows下也可调用，作用是删除路径左右两边多出来的空白符
+ * 1. 删除路径左右两边多出来的空白符
+ * 2. 将 ~/ 转换为绝对路径
  */
 static char *
-xy_uniform_path (const char *path)
+xy_normalize_path (const char *path)
 {
   char *new = xy_str_strip (path); // 防止开发者多写了空白符
 
-  // 这个函数仅在Windows上才进行替换
   if (xy_on_windows)
     {
       if (xy_str_start_with (new, "~/"))
@@ -748,6 +761,14 @@ xy_uniform_path (const char *path)
         }
       new = xy_str_gsub (new, "/", "\\");
     }
+  else
+    {
+      if (xy_str_start_with (new, "~/"))
+        {
+          new = xy_strjoin (3, xy_os_home, "/",
+                            xy_str_delete_prefix (new, "~/"));
+        }
+    }
 
   return new;
 }
@@ -755,16 +776,26 @@ xy_uniform_path (const char *path)
 static char *
 xy_parent_dir (const char *path)
 {
-  char *dir = xy_uniform_path (path);
+  char *dir = xy_normalize_path (path);
   char *last = NULL;
   if (xy_on_windows)
     {
       last = strrchr (dir, '\\');
+      if (!last)
+        {
+          /* current dir */
+          return ".";
+        }
       *last = '\0';
     }
   else
     {
       last = strrchr (dir, '/');
+      if (!last)
+        {
+          /* current dir */
+          return ".";
+        }
       *last = '\0';
     }
   return dir;
