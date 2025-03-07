@@ -3,23 +3,29 @@
  * -------------------------------------------------------------
  * File Authors  : Aoran Zeng <ccmywish@qq.com>
  * Contributors  :  Nil Null  <nil@null.org>
+ *               |
  * Created On    : <2023-09-31>
- * Last Modified : <2024-08-09>
+ * Last Modified : <2024-12-18>
  * ------------------------------------------------------------*/
 
+static SourceProvider_t pl_perl_upstream =
+{
+  def_upstream, "https://metacpan.org/",
+  def_need_measure_info
+};
+
 /**
- * @time 2024-05-24 更新
- * @ref https://help.mirrors.cernet.edu.cn/CPAN/
+ * @update 2024-05-24
  */
-static SourceInfo
-pl_perl_sources[] = {
-  {&Upstream,       NULL},
-  {&Bfsu,          "https://mirrors.bfsu.edu.cn/CPAN/"},
-  {&Tuna,          "https://mirrors.tuna.tsinghua.edu.cn/CPAN/"},
-  {&Bjtu,          "https://mirror.bjtu.edu.cn/cpan/"},
-  {&Hust,          "https://mirrors.hust.edu.cn/CPAN/"},
-  {&Ali,           "https://mirrors.aliyun.com/CPAN/"},
-  {&Lzuoss,        "https://mirror.lzu.edu.cn/CPAN/"}
+static Source_t pl_perl_sources[] =
+{
+  {&pl_perl_upstream,  NULL},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/CPAN/"},
+  {&Tuna,             "https://mirrors.tuna.tsinghua.edu.cn/CPAN/"},
+  {&Bjtu,             "https://mirror.bjtu.edu.cn/cpan/"},
+  {&Hust,             "https://mirrors.hust.edu.cn/CPAN/"},
+  {&Ali,              "https://mirrors.aliyun.com/CPAN/"},
+  {&Lzuoss,           "https://mirror.lzu.edu.cn/CPAN/"}
 };
 def_sources_n(pl_perl);
 
@@ -41,8 +47,9 @@ pl_perl_getsrc (char *option)
   chsrc_run (cmd, RunOpt_Default);
 }
 
+
 /**
- * Perl换源，参考：https://help.mirrors.cernet.edu.cn/CPAN/
+ * @consult https://help.mirrors.cernet.edu.cn/CPAN/
  */
 void
 pl_perl_setsrc (char *option)
@@ -54,8 +61,10 @@ pl_perl_setsrc (char *option)
   chsrc_run (cmd, RunOpt_Default);
 
   chsrc_note2 ("请您使用 perl -v 以及 cpan -v，若 Perl >= v5.36 或 CPAN >= 2.29，请额外手动调用下面的命令");
-  puts ("perl -MCPAN -e \"CPAN::HandleConfig->load(); CPAN::HandleConfig->edit('pushy_https', 0);; CPAN::HandleConfig->commit()\"");
-  chsrc_conclude (&source, ChsrcTypeSemiAuto);
+  p("perl -MCPAN -e \"CPAN::HandleConfig->load(); CPAN::HandleConfig->edit('pushy_https', 0);; CPAN::HandleConfig->commit()\"");
+
+  chsrc_determine_chgtype (ChgType_SemiAuto);
+  chsrc_conclude (&source);
 }
 
 def_target(pl_perl);

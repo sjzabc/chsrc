@@ -5,22 +5,23 @@
  *               | Aoran Zeng <ccmywish@qq.com>
  * Contributors  :  Nil Null  <nil@null.org>
  * Created On    : <2023-09-03>
- * Last Modified : <2024-08-16>
+ * Last Modified : <2024-09-14>
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-02 更新
+ * @update 2024-09-14
  */
-static SourceInfo
-os_openbsd_sources[] = {
-  {&Upstream,       NULL},
-  {&Ali,       "https://mirrors.aliyun.com/OpenBSD/"},
-  {&Bfsu,      "https://mirrors.bfsu.edu.cn/OpenBSD/"},
-  {&Ustc,      "https://mirrors.ustc.edu.cn/OpenBSD/"},
-  {&Tuna,      "https://mirrors.tuna.tsinghua.edu.cn/OpenBSD/"},
-  {&Tencent,   "https://mirrors.tencent.com/OpenBSD/"},
-  {&Netease,   "https://mirrors.163.com/OpenBSD/"},
-  {&Sohu,      "https://mirrors.sohu.com/OpenBSD/"}
+static Source_t os_openbsd_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Ali,              "https://mirrors.aliyun.com/OpenBSD/"},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/OpenBSD/"},
+  {&Ustc,             "https://mirrors.ustc.edu.cn/OpenBSD/"},
+  {&Tuna,             "https://mirrors.tuna.tsinghua.edu.cn/OpenBSD/"},
+  {&Tencent,          "https://mirrors.tencent.com/OpenBSD/"},
+  // {&Tencent_Intra, "https://mirrors.tencentyun.com/OpenBSD/"},
+  {&Netease,          "https://mirrors.163.com/OpenBSD/"},
+  {&Sohu,             "https://mirrors.sohu.com/OpenBSD/"}
 };
 def_sources_n(os_openbsd);
 
@@ -46,7 +47,8 @@ os_openbsd_setsrc (char *option)
   chsrc_backup ("/etc/installurl");
   chsrc_overwrite_file (source.url, "/etc/installurl");
 
-  chsrc_conclude (&source, ChsrcTypeUntested);
+  chsrc_determine_chgtype (ChgType_Untested);
+  chsrc_conclude (&source);
 }
 
 def_target(os_openbsd);

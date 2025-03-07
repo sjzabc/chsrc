@@ -3,23 +3,26 @@
  * -------------------------------------------------------------
  * File Authors  : Shengwei Chen <414685209@qq.com>
  * Contributors  :  Aoran Zeng   <ccmywish@qq.com>
+ *               |  Yangmoooo <yangmoooo@outlook.com>
+ *               |
  * Created On    : <2024-06-14>
- * Last Modified : <2024-08-27>
+ * Last Modified : <2024-11-21>
  * ------------------------------------------------------------*/
 
 /**
- * @time 2024-06-20 更新
+ * @update 2024-11-21
  */
-static SourceInfo
-os_armbian_sources[] = {
-    {&Upstream,       NULL},
-    {&Tuna,          "https://mirrors.tuna.tsinghua.edu.cn/armbian"},
-    {&Sjtug_Zhiyuan, "https://mirror.sjtu.edu.cn/armbian"},
-    {&Bfsu,          "https://mirrors.bfsu.edu.cn/armbian"},
-    {&Sustech,       "https://mirrors.sustech.edu.cn/armbian"},
-    {&Ustc,          "https://mirrors.ustc.edu.cn/armbian"},
-    {&Nju,           "https://mirrors.nju.edu.cn/armbian"},
-    {&Ali,           "https://mirrors.aliyun.com/armbian"},
+static Source_t os_armbian_sources[] =
+{
+  {&UpstreamProvider, "http://apt.armbian.com"},
+  {&MirrorZ,          "https://mirrors.cernet.edu.cn/armbian"},
+  {&Tuna,             "https://mirrors.tuna.tsinghua.edu.cn/armbian"},
+  {&Sjtug_Zhiyuan,    "https://mirror.sjtu.edu.cn/armbian"},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/armbian"},
+  {&Sustech,          "https://mirrors.sustech.edu.cn/armbian"},
+  {&Ustc,             "https://mirrors.ustc.edu.cn/armbian"},
+  {&Nju,              "https://mirrors.nju.edu.cn/armbian"},
+  {&Ali,              "https://mirrors.aliyun.com/armbian"},
 };
 def_sources_n(os_armbian);
 
@@ -38,7 +41,7 @@ os_armbian_getsrc (char *option)
 }
 
 /**
- * 参考: https://mirrors.tuna.tsinghua.edu.cn/help/armbian
+ * @consult https://mirrors.tuna.tsinghua.edu.cn/help/armbian
  */
 void
 os_armbian_setsrc (char *option)
@@ -54,23 +57,25 @@ os_armbian_setsrc (char *option)
 
   chsrc_run (cmd, RunOpt_Default);
   chsrc_run ("apt update", RunOpt_No_Last_New_Line);
-  chsrc_conclude (&source, ChsrcTypeAuto);
+
+  chsrc_determine_chgtype (ChgType_Auto);
+  chsrc_conclude (&source);
 }
 
 
-FeatInfo
+Feature_t
 os_armbian_feat (char *option)
 {
-  FeatInfo fi = {0};
+  Feature_t f = {0};
 
-  fi.can_get = true;
-  fi.can_reset = false;
+  f.can_get = true;
+  f.can_reset = false;
 
-  fi.stcan_locally = CanNot;
-  fi.can_english = true;
-  fi.can_user_define = true;
+  f.cap_locally = CanNot;
+  f.can_english = true;
+  f.can_user_define = true;
 
-  return fi;
+  return f;
 }
 
 def_target_gsf(os_armbian);

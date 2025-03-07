@@ -10,13 +10,13 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2024-06-12 更新
+ * @update 2024-06-12
  */
-static SourceInfo
-os_anolis_sources[] = {
-  {&Upstream,       NULL},
-  {&Ali,            "https://mirrors.aliyun.com/anolis"},
-  {&Hust,           "https://mirrors.hust.edu.cn/anolis"}
+static Source_t os_anolis_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Ali,              "https://mirrors.aliyun.com/anolis"},
+  {&Hust,             "https://mirrors.hust.edu.cn/anolis"}
 };
 def_sources_n(os_anolis);
 
@@ -36,7 +36,9 @@ os_anolis_setsrc (char *option)
 
   chsrc_run ("dnf makecache", RunOpt_Default);
   chsrc_run ("dnf update", RunOpt_No_Last_New_Line);
-  chsrc_conclude (&source, ChsrcTypeUntested);
+
+  chsrc_determine_chgtype (ChgType_Untested);
+  chsrc_conclude (&source);
 }
 
 def_target_s(os_anolis);

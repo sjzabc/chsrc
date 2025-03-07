@@ -8,15 +8,15 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-10 更新
+ * @update 2023-09-10
  */
-static SourceInfo
-pl_haskell_sources[] = {
-  {&Upstream,       NULL},
-  {&Tuna,          "https://mirrors.tuna.tsinghua.edu.cn/hackage"},
-  {&Bfsu,          "https://mirrors.bfsu.edu.cn/hackage"},
-  {&Nju,           "https://mirror.nju.edu.cn/hackage"},
-  {&Ustc,          "https://mirrors.ustc.edu.cn/hackage"}
+static Source_t pl_haskell_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Tuna,             "https://mirrors.tuna.tsinghua.edu.cn/hackage"},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/hackage"},
+  {&Nju,              "https://mirror.nju.edu.cn/hackage"},
+  {&Ustc,             "https://mirrors.ustc.edu.cn/hackage"}
 };
 def_sources_n(pl_haskell);
 
@@ -33,7 +33,7 @@ pl_haskell_setsrc (char *option)
   char *config = NULL;
   if (xy_on_windows)
     {
-      config = xy_uniform_path ("~/AppData/Roaming/cabal/config");
+      config = xy_normalize_path ("~/AppData/Roaming/cabal/config");
     }
   else
     {
@@ -43,7 +43,7 @@ pl_haskell_setsrc (char *option)
   chsrc_note2 (xy_strjoin (3, "请向 ", config, " 中手动添加:"));
   puts (file); br();
 
-  config = xy_uniform_path ("~/.stack/config.yaml");
+  config = xy_normalize_path ("~/.stack/config.yaml");
   file = xy_strjoin (3, "package-indices:\n"
                        "  - download-prefix: ", source.url,
                      "\n    hackage-security:\n"
@@ -61,8 +61,10 @@ pl_haskell_setsrc (char *option)
                        "        ignore-expiry: no");
 
   chsrc_note2 (xy_strjoin (3, "请向 ", config, " 中手动添加:"));
-  puts (file);
-  chsrc_conclude (&source, ChsrcTypeManual);
+  p(file);
+
+  chsrc_determine_chgtype (ChgType_Manual);
+  chsrc_conclude (&source);
 }
 
 def_target_s (pl_haskell);

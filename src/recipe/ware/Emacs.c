@@ -4,25 +4,28 @@
  * File Authors  : Aoran Zeng <ccmywish@qq.com>
  * Contributors  :  Nil Null  <nil@null.org>
  * Created On    : <2023-10-10>
- * Last Modified : <2024-08-09>
+ * Last Modified : <2024-11-21>
  * ------------------------------------------------------------*/
 
-static MirrorSite
-EmacsChina = {"emacschina",  "EmacsChina",   "Emacs China 社区",    "https://elpamirror.emacs-china.org/", NULL};
+static MirrorSite_t EmacsChina =
+{
+  "emacschina", "EmacsChina", "Emacs China 社区", "https://elpamirror.emacs-china.org/",
+  {SKIP, ToFill, ToFill, NULL}
+};
 
 /**
- * @time 2023-09-10 更新
+ * @update 2023-09-10
  * @note Emacs用户往往只需要一次性换源，只会极少次调用 chsrc，我们只给用户提供文档
  */
-SourceInfo
-wr_emacs_sources[] = {
-  {&Upstream,       NULL},
-  {&Sjtug_Zhiyuan,  "https://mirrors.sjtug.sjtu.edu.cn/docs/emacs-elpa"},
-  {&Tuna,           "https://mirrors.tuna.tsinghua.edu.cn/help/elpa/"},
-  {&Bfsu,           "https://mirrors.bfsu.edu.cn/help/elpa/"},
-  {&Ustc,           "https://mirrors.ustc.edu.cn/help/elpa.html"},
-  {&Zju,            "https://mirrors.zju.edu.cn/docs/elpa/"},
-  {&EmacsChina,     "https://elpamirror.emacs-china.org/"}
+Source_t wr_emacs_sources[] =
+{
+  {&UpstreamProvider,    NULL},
+  {&Sjtug_Zhiyuan,      "https://mirrors.sjtug.sjtu.edu.cn/docs/emacs-elpa"},
+  {&Tuna,               "https://mirrors.tuna.tsinghua.edu.cn/help/elpa/"},
+  {&Bfsu,               "https://mirrors.bfsu.edu.cn/help/elpa/"},
+  {&Ustc,               "https://mirrors.ustc.edu.cn/help/elpa.html"},
+  {&Zju,                "https://mirrors.zju.edu.cn/docs/elpa/"},
+  {&EmacsChina,         "https://elpamirror.emacs-china.org/"}
 };
 def_sources_n(wr_emacs);
 
@@ -33,9 +36,10 @@ wr_emacs_setsrc (char *option)
   chsrc_yield_source_and_confirm (wr_emacs);
 
   chsrc_note2 ("Emacs换源涉及Elisp，需要手动查阅并换源:");
-  puts (source.url);
+  p(source.url);
 
-  chsrc_conclude (&source, ChsrcTypeManual);
+  chsrc_determine_chgtype (ChgType_Manual);
+  chsrc_conclude (&source);
 }
 
 def_target_s (wr_emacs);

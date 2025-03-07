@@ -8,17 +8,17 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-10 更新
+ * @update 2023-09-10
  */
-static SourceInfo
-wr_tex_sources[] = {
-  {&Upstream,       NULL},
-  {&Sjtug_Zhiyuan, "https://mirrors.sjtug.sjtu.edu.cn/ctan/systems/texlive/tlnet"},
-  {&Tuna,          "https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet"},
-  {&Bfsu,          "https://mirrors.bfsu.edu.cn/CTAN/systems/texlive/tlnet"},
-  {&Lzuoss,        "https://mirror.lzu.edu.cn/CTAN/systems/texlive/tlnet"},
-  {&Jlu,           "https://mirrors.jlu.edu.cn/CTAN/systems/texlive/tlnet"},
-  {&Sustech,       "https://mirrors.sustech.edu.cn/CTAN/systems/texlive/tlnet"}
+static Source_t wr_tex_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Sjtug_Zhiyuan,    "https://mirrors.sjtug.sjtu.edu.cn/ctan/systems/texlive/tlnet"},
+  {&Tuna,             "https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet"},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/CTAN/systems/texlive/tlnet"},
+  {&Lzuoss,           "https://mirror.lzu.edu.cn/CTAN/systems/texlive/tlnet"},
+  {&Jlu,              "https://mirrors.jlu.edu.cn/CTAN/systems/texlive/tlnet"},
+  {&Sustech,          "https://mirrors.sustech.edu.cn/CTAN/systems/texlive/tlnet"}
 };
 def_sources_n(wr_tex);
 
@@ -78,7 +78,8 @@ wr_tex_setsrc (char *option)
       chsrc_run (cmd, RunOpt_Default);
     }
 
-  chsrc_conclude (&source, ChsrcTypeUntested);
+  chsrc_determine_chgtype (ChgType_Untested);
+  chsrc_conclude (&source);
 }
 
 def_target(wr_tex);

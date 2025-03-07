@@ -4,19 +4,20 @@
  * File Authors  : Aoran Zeng <ccmywish@qq.com>
  * Contributors  :  Nil Null  <nil@null.org>
  * Created On    : <2023-08-30>
- * Last Modified : <2024-08-17>
+ * Last Modified : <2024-11-22>
  * ------------------------------------------------------------*/
 
 /**
- * @time 2024-04-18 更新
+ * @update 2024-09-14
  * @note 缺少教育网或开源社区软件源
  */
-static SourceInfo
-pl_php_sources[] = {
-  {&Upstream,       NULL},
-  {&Ali,           "https://mirrors.aliyun.com/composer/"},
-  {&Tencent,       "https://mirrors.tencent.com/composer/"},
-  {&Huawei,        "https://mirrors.huaweicloud.com/repository/php/"}
+static Source_t pl_php_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Ali,              "https://mirrors.aliyun.com/composer/"},
+  {&Tencent,          "https://mirrors.tencent.com/composer/"},
+  // {&Tencent_Intra, "https://mirrors.tencentyun.com/composer/"},
+  {&Huawei,           "https://mirrors.huaweicloud.com/repository/php/"}
 };
 def_sources_n(pl_php);
 
@@ -38,7 +39,7 @@ pl_php_getsrc (char *option)
 }
 
 /**
- * PHP 换源，参考：https://developer.aliyun.com/composer
+ * @consult https://developer.aliyun.com/composer
  */
 void
 pl_php_setsrc (char *option)
@@ -56,24 +57,25 @@ pl_php_setsrc (char *option)
   char *cmd = xy_strjoin (4, "composer config", where, "repo.packagist composer ", source.url);
   chsrc_run (cmd, RunOpt_Default);
 
-  chsrc_conclude (&source, ChsrcTypeSemiAuto);
+  chsrc_determine_chgtype (ChgType_Auto);
+  chsrc_conclude (&source);
 }
 
 
-FeatInfo
+Feature_t
 pl_php_feat (char *option)
 {
-  FeatInfo fi = {0};
+  Feature_t f = {0};
 
-  fi.can_get = true;
-  fi.can_reset = false;
+  f.can_get = true;
+  f.can_reset = false;
 
-  fi.stcan_locally = CanFully;
-  fi.locally = "composer 支持 (From v0.1.7)";
-  fi.can_english = false;
-  fi.can_user_define = true;
+  f.cap_locally = FullyCan;
+  f.cap_locally_explain = "Support `composer`";
+  f.can_english = false;
+  f.can_user_define = true;
 
-  return fi;
+  return f;
 }
 
 def_target_gsf (pl_php);

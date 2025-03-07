@@ -2,18 +2,27 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  * -------------------------------------------------------------
  * File Authors  : Aoran Zeng <ccmywish@qq.com>
- * Contributors  :  Nil Null  <nil@null.org>
+ * Contributors  : Yangmoooo <yangmoooo@outlook.com>
+ *               |
  * Created On    : <2023-09-29>
- * Last Modified : <2024-08-16>
+ * Last Modified : <2024-12-18>
  * ------------------------------------------------------------*/
 
+static SourceProvider_t os_linuxlite_upstream =
+{
+  def_upstream, "http://repo.linuxliteos.com/linuxlite/",
+  {NotSkip, NA, NA, "http://repo.linuxliteos.com/linuxlite/isos/7.2/linux-lite-7.2-64bit.iso"} // 2.9GB
+};
+
 /**
- * @time 2023-09-29 更新
+ * @update 2024-11-21
  */
-static SourceInfo
-os_linuxlite_sources[] = {
-  {&Upstream,       NULL},
-  {&Sjtug_Zhiyuan,  "https://mirrors.sjtug.sjtu.edu.cn/linuxliteos/"}
+static Source_t os_linuxlite_sources[] =
+{
+  {&os_linuxlite_upstream, "http://repo.linuxliteos.com/linuxlite/"},
+  {&MirrorZ,          "https://mirrors.cernet.edu.cn/linuxliteos/"},
+  {&Sjtug_Zhiyuan,    "https://mirrors.sjtug.sjtu.edu.cn/linuxliteos/"},
+  {&Nju,              "https://mirror.nju.edu.cn/linuxliteos/"}
 };
 def_sources_n(os_linuxlite);
 
@@ -25,7 +34,7 @@ os_linuxlite_getsrc (char *option)
 }
 
 /**
- * 参考: https://help.mirrors.cernet.edu.cn/linuxliteos/
+ * @consult https://help.mirrors.cernet.edu.cn/linuxliteos/
  */
 void
 os_linuxlite_setsrc (char *option)
@@ -39,7 +48,9 @@ os_linuxlite_setsrc (char *option)
   char *cmd = xy_strjoin (3, "sed -E -i 's@https?://.*/.*/?@", source.url, "@g' " OS_Apt_SourceList);
 
   chsrc_run ("apt update", RunOpt_No_Last_New_Line);
-  chsrc_conclude (&source, ChsrcTypeAuto);
+
+  chsrc_determine_chgtype (ChgType_Auto);
+  chsrc_conclude (&source);
 }
 
 def_target(os_linuxlite);

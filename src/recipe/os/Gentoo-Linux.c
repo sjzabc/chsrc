@@ -2,25 +2,25 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  * -------------------------------------------------------------
  * File Authors  : Heng Guo <2085471348@qq.com>
- * Contributors  : Nil Null <nil@null.org>
+ * Contributors  : Aoran Zeng <ccmywish@qq.com>
  * Created On    : <2023-09-05>
- * Last Modified : <2024-08-16>
+ * Last Modified : <2024-11-22>
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-05 更新
- * @note 源并不完整，且未经测试是否有效
+ * @update 2024-09-14
  */
-static SourceInfo
-os_gentoo_sources[] = {
-  {&Upstream,       NULL},
-  {&Ali,           "mirrors.aliyun.com"},
-  {&Bfsu,          "mirrors.bfsu.edu.cn"},
-  {&Ustc,          "mirrors.ustc.edu.cn"},
-  {&Tuna,          "mirrors.tuna.tsinghua.edu.cn"},
-  {&Tencent,       "mirrors.tencent.com"},
-  {&Netease,       "mirrors.163.com"},
-  {&Sohu,          "mirrors.sohu.com"}
+static Source_t os_gentoo_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Ali,              "mirrors.aliyun.com"},
+  {&Bfsu,             "mirrors.bfsu.edu.cn"},
+  {&Ustc,             "mirrors.ustc.edu.cn"},
+  {&Tuna,             "mirrors.tuna.tsinghua.edu.cn"},
+  {&Tencent,          "mirrors.tencent.com"},
+  // {&Tencent_Intra, "mirrors.tencentyun.com"},
+  {&Netease,          "mirrors.163.com"},
+  {&Sohu,             "mirrors.sohu.com"}
 };
 def_sources_n(os_gentoo);
 
@@ -42,10 +42,12 @@ os_gentoo_setsrc (char *option)
                             "gentoo-portage#g");
   chsrc_run (cmd, RunOpt_Default);
 
-  char *towrite = xy_strjoin (3, "GENTOO_MIRRORS=\"https://", source.url, "gentoo\"");
+  char *w = xy_strjoin (3, "GENTOO_MIRRORS=\"https://", source.url, "gentoo\"\n");
 
-  chsrc_append_to_file (towrite, "/etc/portage/make.conf");
-  chsrc_conclude (&source, ChsrcTypeUntested);
+  chsrc_append_to_file (w, "/etc/portage/make.conf");
+
+  chsrc_determine_chgtype (ChgType_Untested);
+  chsrc_conclude (&source);
 }
 
 def_target_s(os_gentoo);

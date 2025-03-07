@@ -8,19 +8,19 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-11 更新
+ * @update 2023-09-11
  * @note 目前只有一个源
  */
-static SourceInfo
-wr_guix_sources[] = {
-  {&Upstream,       NULL},
-  {&Sjtug_Zhiyuan, "https://mirror.sjtu.edu.cn/git/guix.git"}
+static Source_t wr_guix_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Sjtug_Zhiyuan,    "https://mirror.sjtu.edu.cn/git/guix.git"}
 };
 def_sources_n(wr_guix);
 
 
 /**
- * 参考: https://mirrors.sjtug.sjtu.edu.cn/docs/guix
+ * @consult https://mirrors.sjtug.sjtu.edu.cn/docs/guix
  */
 void
 wr_guix_setsrc (char *option)
@@ -32,8 +32,10 @@ wr_guix_setsrc (char *option)
                                "       (url \"", source.url, "\")))");
 
   chsrc_note2 ("为防止扰乱配置文件，请您手动写入以下内容到 ~/.config/guix/channels.scm 文件中");
-  puts (file);
-  chsrc_conclude (&source, ChsrcTypeManual);
+  p(file);
+
+  chsrc_determine_chgtype (ChgType_Manual);
+  chsrc_conclude (&source);
 }
 
 def_target_s (wr_guix);

@@ -1,19 +1,31 @@
 .vscode
 
-*.exe
-*.out
 *.o
 *.obj
+*.a
+*.lib
+*.so
+*.dll
+*.out
+*.exe
 
 # target exe name
 chsrc
+
+# test files
 xy
+fw
+README.md.bak*
 
 # 'chsrc set -local' generated
 .bundle
+.npmrc
 
 # Generated when testing
 nul
+
+# Cygwin problem
+.chsrc_measure_tmp.sh
 
 # Texinfo
 chsrc.aux

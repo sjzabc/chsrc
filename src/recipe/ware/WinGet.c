@@ -8,13 +8,13 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2024-06-07 更新
+ * @update 2024-06-07
  * @note 目前仅有一个源
  */
-static SourceInfo
-wr_winget_sources[] = {
-  {&Upstream,       "https://cdn.winget.microsoft.com/cache"},
-  {&Ustc,           "https://mirrors.ustc.edu.cn/winget-source"},
+static Source_t wr_winget_sources[] =
+{
+  {&UpstreamProvider,   "https://cdn.winget.microsoft.com/cache"},
+  {&Ustc,               "https://mirrors.ustc.edu.cn/winget-source"},
 };
 def_sources_n(wr_winget);
 
@@ -25,7 +25,10 @@ wr_winget_getsrc (char *option)
   chsrc_run ("winget source list", RunOpt_Default);
 }
 
-/* 参考：https://mirrors.ustc.edu.cn/help/winget-source.html */
+
+/**
+ * @consult https://mirrors.ustc.edu.cn/help/winget-source.html
+ */
 void
 wr_winget_setsrc (char *option)
 {
@@ -34,29 +37,33 @@ wr_winget_setsrc (char *option)
   chsrc_run ("winget source remove winget", RunOpt_Default);
   chsrc_run (xy_2strjoin ("winget source add winget ", source.url), RunOpt_Default);
 
-  chsrc_conclude (&source, ChsrcTypeAuto);
+  chsrc_determine_chgtype (ChgType_Auto);
+  chsrc_conclude (&source);
 }
+
 
 void
 wr_winget_resetsrc (char *option)
 {
   chsrc_run ("winget source reset winget", RunOpt_Default);
-  chsrc_conclude (NULL, ChsrcTypeAuto);
+
+  chsrc_determine_chgtype (ChgType_Reset);
+  chsrc_conclude (NULL);
 }
 
 
-FeatInfo
+Feature_t
 wr_winget_feat (char *option)
 {
-  FeatInfo fi = {0};
+  Feature_t f = {0};
 
-  fi.can_get = true;
-  fi.can_reset = true;
+  f.can_get = true;
+  f.can_reset = true;
 
-  fi.can_english = false;
-  fi.can_user_define = true;
+  f.can_english = false;
+  f.can_user_define = true;
 
-  return fi;
+  return f;
 }
 
 def_target_gsrf(wr_winget);

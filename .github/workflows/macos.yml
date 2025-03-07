@@ -1,9 +1,9 @@
 name: macOS Build
 on:
   push:
-    branches: [ "gh-pipeline" ]
+    branches: [ "gh-build" ]
   pull_request:
-    branches: [ "gh-pipeline" ]
+    branches: [ "gh-build" ]
 
 jobs:
   build-and-upload-on-M1:
@@ -15,7 +15,7 @@ jobs:
 
     - name: Compile chsrc for AArch64
       run: |
-        make CI CI_Build_Name=chsrc-aarch64-macos
+        make CI CI_ARTIFACT_NAME=chsrc-aarch64-macos
 
     - name: List files
       run: ls *-macos
@@ -27,7 +27,7 @@ jobs:
         tag_name: pre
         files: |
           chsrc-aarch64-macos
-        token: ${{ secrets.CHSRC_UPLOAD }}
+        token: ${{ secrets.UPLOAD_TO_GITHUB }}
 
 
   build-and-upload-on-x64:
@@ -39,7 +39,7 @@ jobs:
 
     - name: Compile chsrc for x64
       run: |
-        make CI CI_Build_Name=chsrc-x64-macos
+        make CI CI_ARTIFACT_NAME=chsrc-x64-macos
 
     - name: List files
       run: ls *-macos
@@ -51,4 +51,4 @@ jobs:
         tag_name: pre
         files: |
           chsrc-x64-macos
-        token: ${{ secrets.CHSRC_UPLOAD }}
+        token: ${{ secrets.UPLOAD_TO_GITHUB }}
