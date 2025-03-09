@@ -1,10 +1,11 @@
 /** ------------------------------------------------------------
  * SPDX-License-Identifier: GPL-3.0-or-later
  * -------------------------------------------------------------
+ * File Name     : recipe-template.c
  * File Authors  : Aoran Zeng <ccmywish@qq.com>
  * Contributors  :  Nil Null  <nil@null.org>
  * Created On    : <2024-08-09>
- * Last Modified : <2024-08-18>
+ * Last Modified : <2024-11-22>
  * -------------------------------------------------------------
  * 本文件作为一个通用模板：
  *
@@ -16,20 +17,23 @@
  *            分别对应3个子目录:         lang, os, ware
  * ------------------------------------------------------------*/
 
+
+
 /* 模版文件从下行正式开始 */
 /** ------------------------------------------------------------
  * SPDX-License-Identifier: GPL-3.0-or-later
  * -------------------------------------------------------------
+ * File Name     : <target>.c
  * File Authors  : Nil Null <nil@null.org> 尼尔闹先生
  * Contributors  : Nul None <nul@none.org> 怒了馕女士
- * Created On    : <202x-01-01> https://www.yuque.com/ccmywish/blog/nil-null-and-nul-none
- * Last Modified : <202x-01-01> 请更新文件标头
+ * Created On    : <2024-01-01> https://www.yuque.com/ccmywish/blog/nil-null-and-nul-none
+ * Last Modified : <2024-01-01> 请更新文件标头
  * ------------------------------------------------------------*/
 
 /**
  * 定义专服务于该target的镜像站，该例数据为虚拟填充
  */
-static MirrorSite
+static MirrorSite_t
 RubyMetric = {"rbmt",                   // chsrc set <target> rbmt
               "RubyMetric",             // 该镜像站的缩写
               "RubyMetric.com",         // 该镜像站的全名
@@ -38,12 +42,12 @@ RubyMetric = {"rbmt",                   // chsrc set <target> rbmt
               "https://rubymetirc.com/target/aws/aws-sdk-go/@v/v1.45.2.zip"};
 
 /**
- * @time 2024-08-09 更新
- * @note 该target的各个源地址，该例数据为虚拟填充
+ * @update 2024-08-09
+ * @note   该target的各个源地址，该例数据为虚拟填充
  */
-static SourceInfo
+static Source_t
 <category>_<target>_sources[] = {
-  {&Upstream,      "上游地址，若维护者暂时未知，可填NULL，这个主要用于reset"},
+  {&UpstreamProvider,      "上游地址，若维护者暂时未知，可填NULL，这个主要用于reset"},
   {&RubyMetric,    "https://rubymetirc.com/target"},
   {&RubyInstaller, "https://rubyinstaller.cn/target"},
   {&Gitee,         "https://gitee.com/RubyMetric/chsrc"},
@@ -66,20 +70,21 @@ void
 
 /**
  * @required 必需
- * @ref      写明换源实现的参考地址
+ * @consult  写明换源实现的参考地址
  *
  * 用于 chsrc set <target>
  */
 void
 <category>_<target>_setsrc (char *option)
 {
-  // 下面这行是必须的，注入source变量
+  /* 下面这行是必须的，注入source变量 */
   chsrc_yield_source_and_confirm (<category>_<target>);
 
   /* 具体的换源步骤，如调用第三方命令... */
 
-  // 最后总结输出
-  chsrc_conclude (&source, chsrc_type);
+  /* 最后总结输出 */
+  ProgMode_ChgType = ChgType_;
+  chsrc_conclude (&source);
 }
 
 
@@ -91,8 +96,8 @@ void
 void
 <category>_<target>_resetsrc (char *option)
 {
-  // 往往通过下述方式统一在 setsrc() 中实现
-  // <category>_<name>_setsrc (ChsrcTypeReset);
+  /* 往往统一在 _setsrc() 中实现，直接调用即可 */
+  // <category>_<target>_setsrc (option);
 }
 
 
@@ -101,21 +106,22 @@ void
  *
  * 用于 chsrc ls <target>
  */
-FeatInfo
+Feature_t
 <category>_<target>_feat (char *option)
 {
-  FeatInfo fi = {0};
+  Feature_t f = {0};
 
-  fi.can_get = true;
-  fi.can_reset = false;
+  f.can_get = true;
+  f.can_reset = false;
 
-  fi.stcan_locally = CanSemi;
-  fi.locally = "具体说明是否支持项目级换源...";;
-  fi.can_english = false;
-  fi.can_user_define = false;
+  f.cap_locally = PartiallyCan;
+  f.cap_locally_explain = "具体说明是否支持项目级换源...";
 
-  fi.note = "备注说明...";
-  return fi;
+  f.can_english = false;
+  f.can_user_define = false;
+
+  f.note = "备注说明...";
+  return f;
 }
 
 

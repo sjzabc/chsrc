@@ -9,34 +9,37 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2024-07-03 更新
+ * @update 2024-07-03
  * @note 不要给后面加 / ，因为ARM情况下，还要额外加一个 arm 后缀
  */
-static SourceInfo
-os_arch_sources[] = {
-  {&Upstream,       NULL},
-  {&Ali,           "https://mirrors.aliyun.com/archlinux"},
-  {&Bfsu,          "https://mirrors.bfsu.edu.cn/archlinux"},
-  {&Ustc,          "https://mirrors.ustc.edu.cn/archlinux"},
-  {&Tuna,          "https://mirrors.tuna.tsinghua.edu.cn/archlinux"},
-  {&Tencent,       "https://mirrors.tencent.com/archlinux"},
-  {&Huawei,        "https://mirrors.huaweicloud.com/archlinux"}, // 不支持 archlinuxcn
-  {&Netease,       "https://mirrors.163.com/archlinux"},         // archlinuxcn 的URL和其他镜像站不同
+static Source_t os_arch_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Ali,              "https://mirrors.aliyun.com/archlinux"},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/archlinux"},
+  {&Ustc,             "https://mirrors.ustc.edu.cn/archlinux"},
+  {&Tuna,             "https://mirrors.tuna.tsinghua.edu.cn/archlinux"},
+  {&Tencent,          "https://mirrors.tencent.com/archlinux"},
+  // {&Tencent_Intra, "https://mirrors.tencentyun.com/archlinux"},
+  {&Huawei,           "https://mirrors.huaweicloud.com/archlinux"}, // 不支持 archlinuxcn
+  {&Netease,          "https://mirrors.163.com/archlinux"},         // archlinuxcn 的URL和其他镜像站不同
   // {&Sohu,          "https://mirrors.sohu.com/archlinux"}       // 不支持 archlinuxcn
 },
 
 /**
- * @time 2024-07-03 更新
- * @note 根据 GitHub:@zheng7fu2 建议，拆分 archlinuxcn 出来
+ * @update 2024-07-03
+ * @note 根据 @zheng7fu2 建议，拆分 archlinuxcn 出来
  */
-os_archlinuxcn_sources[] = {
-  {&Upstream,      "https://repo.archlinuxcn.org/"},
-  {&Ali,           "https://mirrors.aliyun.com/archlinuxcn/"},
-  {&Bfsu,          "https://mirrors.bfsu.edu.cn/archlinuxcn/"},
-  {&Ustc,          "https://mirrors.ustc.edu.cn/archlinuxcn/"},
-  {&Tuna,          "https://mirrors.tuna.tsinghua.edu.cn/archlinuxcn/"},
-  {&Tencent,       "https://mirrors.cloud.tencent.com/archlinuxcn/"},
-  {&Netease,       "https://mirrors.163.com/archlinux-cn/"}
+os_archlinuxcn_sources[] =
+{
+  {&UpstreamProvider, "https://repo.archlinuxcn.org/"},
+  {&Ali,              "https://mirrors.aliyun.com/archlinuxcn/"},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/archlinuxcn/"},
+  {&Ustc,             "https://mirrors.ustc.edu.cn/archlinuxcn/"},
+  {&Tuna,             "https://mirrors.tuna.tsinghua.edu.cn/archlinuxcn/"},
+  {&Tencent,          "https://mirrors.cloud.tencent.com/archlinuxcn/"},
+  // {&Tencent_Intra, "https://mirrors.cloud.tencentyun.com/archlinuxcn/"},
+  {&Netease,          "https://mirrors.163.com/archlinux-cn/"}
 };
 def_sources_n(os_arch);
 def_sources_n(os_archlinuxcn);
@@ -50,9 +53,9 @@ os_arch_getsrc (char *option)
 }
 
 /**
- * 参考:
- * 1. https://mirrors.tuna.tsinghua.edu.cn/help/archlinux/
- * 2. https://mirrors.tuna.tsinghua.edu.cn/help/archlinuxarm/
+ * @consult
+ *   1. https://mirrors.tuna.tsinghua.edu.cn/help/archlinux/
+ *   2. https://mirrors.tuna.tsinghua.edu.cn/help/archlinuxarm/
  */
 void
 os_arch_setsrc (char *option)
@@ -89,7 +92,9 @@ os_arch_setsrc (char *option)
     {
       chsrc_run ("pacman -Syy", RunOpt_No_Last_New_Line);
     }
-  chsrc_conclude (&source, ChsrcTypeUntested);
+
+  chsrc_determine_chgtype (ChgType_Auto);
+  chsrc_conclude (&source);
 }
 
 
@@ -100,7 +105,7 @@ os_archlinuxcn_getsrc (char *option)
 }
 
 /**
- * 参考 https://mirrors.tuna.tsinghua.edu.cn/help/archlinuxcn/
+ * @consult https://mirrors.tuna.tsinghua.edu.cn/help/archlinuxcn/
  */
 void
 os_archlinuxcn_setsrc (char *option)
@@ -122,42 +127,44 @@ os_archlinuxcn_setsrc (char *option)
   chsrc_run ("pacman -Sy archlinuxcn-keyring", RunOpt_Default);
 
   chsrc_run ("pacman -Syy", RunOpt_No_Last_New_Line);
-  chsrc_conclude (&source, ChsrcTypeUntested);
+
+  ProgMode_ChgType = ChgType_Untested;
+  chsrc_conclude (&source);
 }
 #undef OS_Pacman_MirrorList
 
 
-FeatInfo
+Feature_t
 os_arch_feat (char *option)
 {
-  FeatInfo fi = {0};
+  Feature_t f = {0};
 
-  fi.can_get = true;
-  fi.can_reset = false;
+  f.can_get = true;
+  f.can_reset = false;
 
-  fi.stcan_locally = CanNot;
-  fi.can_english = true;
-  fi.can_user_define = true;
+  f.cap_locally = CanNot;
+  f.can_english = true;
+  f.can_user_define = true;
 
-  fi.note = "可额外使用 chsrc set archlinuxcn 来更换 Arch Linux CN Repository 源";
-  return fi;
+  f.note = "可额外使用 chsrc set archlinuxcn 来更换 Arch Linux CN Repository 源";
+  return f;
 }
 
 
-FeatInfo
+Feature_t
 os_archlinuxcn_feat (char *option)
 {
-  FeatInfo fi = {0};
+  Feature_t f = {0};
 
-  fi.can_get = true;
-  fi.can_reset = false;
+  f.can_get = true;
+  f.can_reset = false;
 
-  fi.stcan_locally = CanNot;
-  fi.can_english = true;
-  fi.can_user_define = true;
+  f.cap_locally = CanNot;
+  f.can_english = true;
+  f.can_user_define = true;
 
-  fi.note = "可额外使用 chsrc set arch 来更换 Arch Linux 源";
-  return fi;
+  f.note = "可额外使用 chsrc set arch 来更换 Arch Linux 源";
+  return f;
 }
 
 

@@ -1,45 +1,101 @@
-# ------------------------------------------------------------
+# --------------------------------------------------------------
 # SPDX-License-Identifier: GPL-3.0-or-later
-# -------------------------------------------------------------
-# File          : Makefile
-# Authors       : Aoran Zeng <ccmywish@qq.com>
-# Created on    : <2023-08-28>
-# Last modified : <2024-06-05>
-# ---------------------------------------------------------------
+# --------------------------------------------------------------
+# Build File    : Makefile
+# File Authors  : Aoran Zeng <ccmywish@qq.com>
+# Contributors  : Yangmoooo  <yangmoooo@outlook.com>
+#								|
+# Created On    : <2023-08-28>
+# Last Modified : <2025-03-06>
+# --------------------------------------------------------------
 
-CFLAGS = -Iinclude # -Wall
+On-Linux = 0
+On-Windows = 0
+On-macOS = 0
 
-# 只有Windows会定义该变量
-ifeq ($(OS), Windows_NT)
-	CLANG_FLAGS = -Target x86_64-pc-windows-gnu
+ifeq ($(shell uname), Linux)
+	On-Linux = 1
 endif
+
+# 只有Windows会定义$(OS)变量
+ifeq ($(OS), Windows_NT)
+	On-Windows = 1
+endif
+#=======================
+
+CFLAGS += -Iinclude -Ilib
+
+ifeq ($(On-Windows), 1)
+	CLANG_FLAGS = -target x86_64-pc-windows-gnu
+endif
+
 ifeq ($(CC), clang)
 	CFLAGS += $(CLANG_FLAGS)
 endif
-ifeq ($(shell uname), Linux)
-	CFLAGS += -static
+
+override WARN += -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-missing-braces -Wno-misleading-indentation \
+	-Wno-missing-field-initializers -Wno-unused-parameter -Wno-sign-compare
+_C_Warning_Flags := $(WARN)
+
+ifdef DEBUG
+	CFLAGS += -g
 endif
 
-Target = chsrc
+DEBUGGER = gdb
 
-CI_Build_Name = chsrc
+STATIC = 0
 #=======================
 
+Target-Name = chsrc
+
+# 由 GitHub Actions 在调用时修改
+CI_ARTIFACT_NAME = chsrc
+
+ifeq ($(MAKECMDGOALS), CI)
+	ifeq ($(On-Linux), 1)
+		STATIC = 1
+	endif
+endif
+#=======================
+
+
 all:
-	@$(CC) src/chsrc.c $(CFLAGS) -o $(Target)
+ifeq ($(STATIC), 1)
+CFLAGS += -static
+endif
+
+all:
+	@$(CC) src/chsrc-main.c $(CFLAGS) $(_C_Warning_Flags) -o $(Target-Name)
 	@echo; echo Compile done using \'$(CC)\' $(CFLAGS)
 
 CI: all
-	@mv $(Target) $(CI_Build_Name)
+	@mv $(Target-Name) $(CI_ARTIFACT_NAME)
 
-test: $(Target)
-	@perl ./test/cli.pl
+
+debug: CFLAGS += -g
+debug: all
+	@$(DEBUGGER) ./chsrc
+
+test: test-xy test-fw
 
 test-xy:
 	@$(CC) test/xy.c $(CFLAGS) -o xy
 	@./xy
 
+test-fw:
+	@$(CC) test/fw.c $(CFLAGS) -o fw
+	@./fw
+
+# AUR package 安装时将执行此 target
+fastcheck: $(Target-Name)
+	@perl ./test/cli.pl fastcheck
+
+test-cli: $(Target-Name)
+	@perl ./test/cli.pl
+
 clean:
 	-@rm *.exe  2>/dev/null
 	-@rm xy     2>/dev/null
+	-@rm fw     2>/dev/null
 	-@rm chsrc  2>/dev/null
+	-@rm README.md.bak* 2>/dev/null

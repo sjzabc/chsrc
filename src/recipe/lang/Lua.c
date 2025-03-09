@@ -7,18 +7,21 @@
  * Last Modified : <2024-08-09>
  * ------------------------------------------------------------*/
 
-static MirrorSite
-Api7 = {"api7",  "api7.ai",  "深圳支流科技有限公司", "https://www.apiseven.com/", NULL};
+static MirrorSite_t Api7 =
+{
+  "api7", "api7.ai", "深圳支流科技有限公司", "https://www.apiseven.com/",
+  {SKIP, ToFill, ToFill, NULL}
+};
 
 
 /**
- * @time 2023-09-27 更新
+ * @update 2023-09-27
  * @note 目前只有一个源
  */
-static SourceInfo
-pl_lua_sources[] = {
-  {&Upstream,       NULL},
-  {&Api7,          "https://luarocks.cn"},
+static Source_t pl_lua_sources[] =
+{
+  {&UpstreamProvider, NULL},
+  {&Api7,             "https://luarocks.cn"},
 };
 def_sources_n(pl_lua);
 
@@ -31,7 +34,7 @@ pl_lua_getsrc (char *option)
 }
 
 /**
- * Lua 换源，参考：https://luarocks.cn/
+ * @consult https://luarocks.cn/
  */
 void
 pl_lua_setsrc (char *option)
@@ -49,9 +52,10 @@ pl_lua_setsrc (char *option)
                                       "server = \"", source.url, "\"");
 
   chsrc_note2 ("请手动修改 ~/.luarocks/upload_config.lua 文件 (用于上传):");
-  puts (upload_config);
+  p(upload_config);
 
-  chsrc_conclude (&source, ChsrcTypeManual);
+  chsrc_determine_chgtype (ChgType_Manual);
+  chsrc_conclude (&source);
 }
 
 def_target(pl_lua);

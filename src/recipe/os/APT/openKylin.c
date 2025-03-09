@@ -11,13 +11,13 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-29 更新
+ * @update 2023-09-29
  */
-static SourceInfo
-os_openkylin_sources[] = {
-  {&Upstream,  "https://archive.openkylin.top/openkylin/"},
-  {&Ali,       "https://mirrors.aliyun.com/openkylin/"},
-  {&Netease,   "https://mirrors.163.com/openkylin/"},
+static Source_t os_openkylin_sources[] =
+{
+  {&UpstreamProvider, "https://archive.openkylin.top/openkylin/"},
+  {&Ali,              "https://mirrors.aliyun.com/openkylin/"},
+  {&Netease,          "https://mirrors.163.com/openkylin/"},
 };
 def_sources_n(os_openkylin);
 
@@ -39,7 +39,9 @@ os_openkylin_setsrc (char *option)
   char *cmd = xy_strjoin (3, "sed -E -i 's@https?://.*/openkylin/?@", source.url, "@g'" OS_Apt_SourceList);
   chsrc_run (cmd, RunOpt_Default);
   chsrc_run ("apt update", RunOpt_No_Last_New_Line);
-  chsrc_conclude (&source, ChsrcTypeUntested);
+
+  chsrc_determine_chgtype (ChgType_Untested);
+  chsrc_conclude (&source);
 }
 
 def_target(os_openkylin);

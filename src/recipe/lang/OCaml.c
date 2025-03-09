@@ -8,12 +8,12 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-15 更新
+ * @update 2023-09-15
  */
-static SourceInfo
-pl_ocaml_sources[] = {
-  {&Upstream,       NULL},
-  {&Sjtug_Zhiyuan, "https://mirrors.sjtug.sjtu.edu.cn/git/opam-repository.git"}
+static Source_t pl_ocaml_sources[] =
+{
+  {&UpstreamProvider, NULL},
+  {&Sjtug_Zhiyuan,   "https://mirrors.sjtug.sjtu.edu.cn/git/opam-repository.git"}
 };
 def_sources_n(pl_ocaml);
 
@@ -24,18 +24,20 @@ pl_ocaml_check_cmd ()
   chsrc_ensure_program ("opam");
 }
 
+
 void
-pl_ocaml_getsrc(char *option)
+pl_ocaml_getsrc (char *option)
 {
   pl_ocaml_check_cmd ();
   chsrc_run ("opam repo get-url default", RunOpt_Default);
 }
 
+
 /**
- * 参考: https://mirrors.sjtug.sjtu.edu.cn/docs/git/opam-repository.git
+ * @consult https://mirrors.sjtug.sjtu.edu.cn/docs/git/opam-repository.git
  */
 void
-pl_ocaml_setsrc(char *option)
+pl_ocaml_setsrc (char *option)
 {
   pl_ocaml_check_cmd ();
 
@@ -48,9 +50,10 @@ pl_ocaml_setsrc(char *option)
   chsrc_run (cmd, RunOpt_Default);
 
   chsrc_note2 ("如果是首次使用 opam ，请使用以下命令进行初始化");
-  puts (xy_2strjoin ("opam init default ", source.url));
+  p(xy_2strjoin ("opam init default ", source.url));
 
-  chsrc_conclude (&source, ChsrcTypeSemiAuto);
+  chsrc_determine_chgtype (ChgType_SemiAuto);
+  chsrc_conclude (&source);
 }
 
 def_target(pl_ocaml);

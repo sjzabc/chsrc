@@ -2,22 +2,28 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  * -------------------------------------------------------------
  * File Authors  : Aoran Zeng <ccmywish@qq.com>
- * Contributors  :  Nil Null  <nil@null.org>
+ * Contributors  : Yangmoooo  <yangmoooo@outlook.com>
+ *               | yongxiang  <1926885268@qq.com>
+ *               |
  * Created On    : <2023-09-10>
- * Last Modified : <2024-08-15>
+ * Last Modified : <2024-12-08>
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-10 更新
+ * @update 2024-12-08
  * @note 这些链接将会在setsrc函数中补充完整
  */
-static SourceInfo
-wr_anaconda_sources[] = {
-  {&Upstream,       NULL},
-  {&Tuna,            "https://mirrors.tuna.tsinghua.edu.cn/anaconda/"},
-  {&Bfsu,            "https://mirrors.bfsu.edu.cn/anaconda/"},
-  {&Zju,             "https://mirrors.zju.edu.cn/anaconda/"},
-  {&Sjtug_Zhiyuan,   "https://mirror.sjtu.edu.cn/anaconda"}
+static Source_t wr_anaconda_sources[] =
+{
+  {&UpstreamProvider, "https://repo.anaconda.com/"},
+  {&Nju,              "https://mirror.nju.edu.cn/anaconda/"},
+  {&Bjtu,             "https://mirror.bjtu.edu.cn/anaconda/"},
+  {&Tuna,             "https://mirrors.tuna.tsinghua.edu.cn/anaconda/"},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/anaconda/"},
+  {&Zju,              "https://mirrors.zju.edu.cn/anaconda/"},
+  {&Sjtug_Zhiyuan,    "https://mirror.sjtu.edu.cn/anaconda"},
+  {&Pku,              "https://mirrors.pku.edu.cn/anaconda/"},
+  {&NJTech,           "https://mirrors.njtech.edu.cn/anaconda/"},
 };
 def_sources_n(wr_anaconda);
 
@@ -67,7 +73,9 @@ wr_anaconda_setsrc (char *option)
   puts (file);
 
   chsrc_note2 ("然后运行 conda clean -i 清除索引缓存，保证用的是镜像站提供的索引");
-  chsrc_conclude (&source, ChsrcTypeSemiAuto);
+
+  chsrc_determine_chgtype (ChgType_SemiAuto);
+  chsrc_conclude (&source);
 }
 
 def_target_s (wr_anaconda);

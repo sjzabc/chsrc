@@ -8,19 +8,19 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-11 更新
+ * @update 2023-09-11
  * @note 目前只有一个源
  */
-static SourceInfo
-wr_flathub_sources[] = {
-  {&Upstream,       NULL},
-  {&Sjtug_Zhiyuan, "https://mirror.sjtu.edu.cn/flathub"},
+static Source_t wr_flathub_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Sjtug_Zhiyuan,    "https://mirror.sjtu.edu.cn/flathub"},
 };
 def_sources_n(wr_flathub);
 
 
 /**
- * 参考: https://mirrors.sjtug.sjtu.edu.cn/docs/flathub
+ * @consult https://mirrors.sjtug.sjtu.edu.cn/docs/flathub
  */
 void
 wr_flathub_setsrc (char *option)
@@ -37,7 +37,8 @@ wr_flathub_setsrc (char *option)
   char *cmd = xy_2strjoin ("flatpak remote-modify flathub --url=", source.url);
   chsrc_run (cmd, RunOpt_Default);
 
-  chsrc_conclude (&source, ChsrcTypeAuto);
+  chsrc_determine_chgtype (ChgType_Auto);
+  chsrc_conclude (&source);
 }
 
 def_target_s (wr_flathub);

@@ -1,5 +1,5 @@
 /** ------------------------------------------------------------
- * Copyright © 2023-2024 Aoran Zeng, Heng Guo
+ * Copyright © 2023-2025 Aoran Zeng, Heng Guo
  * SPDX-License-Identifier: GPL-3.0-or-later
  * -------------------------------------------------------------
  * Project Name    :    chsrc
@@ -11,31 +11,61 @@
  *                 |   BlockLune   <blocklune@gmail.com>
  *                 |   Mr. Will    <mr.will.com@outlook.com>
  *                 |   Terrasse    <terrasse@qq.com>
+ *                 |   Lontten     <lontten@163.com>
+ *                 |  happy game   <happygame1024@gmail.com>
+ *                 |    xuan       <wick.dynex@qq.com>
+ *                 |   GnixAij     <gaojiaxing0220@gmail.com>
+ *                 |   ChatGPT     <https://chatgpt.com>
+ *                 |    czyt       <czyt.go@gmail.com>
+ *                 |    zouri      <guoshuaisun@outlook.com>
+ *                 |  yongxiang    <1926885268@qq.com>
+ *                 |    YU-7       <2747046473@qq.com>
+ *                 |   juzeon      <skyjuzheng@gmail.com>
  *                 |
  * Created On      : <2023-08-28>
- * Last Modified   : <2024-08-29>
+ * Last Modified   : <2025-03-09>
  *
  * chsrc: Change Source —— 全平台通用命令行换源工具
  * ------------------------------------------------------------*/
 
-#define Chsrc_Version        "0.1.8.1"
-#define Chsrc_Release_Date   "2024/08/28"
-#define Chsrc_Banner_Version "v" Chsrc_Version "-" Chsrc_Release_Date
+#define Chsrc_Version        "0.2.0-beta1"
+#define Chsrc_Release_Date   "2025/03/09"
 #define Chsrc_Maintain_URL   "https://github.com/RubyMetric/chsrc"
 #define Chsrc_Maintain_URL2  "https://gitee.com/RubyMetric/chsrc"
 
-#include "chsrc.h"
+#include "framework/core.c"
 
 #include "recipe/lang/Ruby.c"
-#include "recipe/lang/Python.c"
-#include "recipe/lang/Node.js.c"
+
+#include "recipe/lang/Python/common.h"
+  #include "recipe/lang/Python/pip.c"
+  #include "recipe/lang/Python/Poetry.c"
+  #include "recipe/lang/Python/PDM.c"
+  #include "recipe/lang/Python/Rye.c"
+  #include "recipe/lang/Python/uv.c"
+#include "recipe/lang/Python/Python.c"
+
+#include "recipe/lang/Node.js/common.h"
+  #include "recipe/lang/Node.js/npm.c"
+  #include "recipe/lang/Node.js/pnpm.c"
+  #include "recipe/lang/Node.js/Yarn.c"
+#include "recipe/lang/Node.js/Node.js.c"
+#include "recipe/lang/Node.js/Bun.c"
+#include "recipe/lang/Node.js/nvm.c"
+
 #include "recipe/lang/Perl.c"
 #include "recipe/lang/PHP.c"
 #include "recipe/lang/Lua.c"
 #include "recipe/lang/Go.c"
 #include "recipe/lang/Java.c"
-#include "recipe/lang/Rust.c"
-#include "recipe/lang/Dart.c"
+
+#include "recipe/lang/Rust/common.h"
+  #include "recipe/lang/Rust/rustup.c"
+  #include "recipe/lang/Rust/Cargo.c"
+
+#include "recipe/lang/Dart/Pub.c"
+#include "recipe/lang/Dart/Flutter.c"
+
 #include "recipe/lang/Haskell.c"
 #include "recipe/lang/OCaml.c"
 #include "recipe/lang/R.c"
@@ -59,6 +89,7 @@
 #include "recipe/os/APT/Armbian.c"
 // Independent
 #include "recipe/os/APT/ROS.c"
+#include "recipe/os/APT/Termux.c"
 #include "recipe/os/APT/openKylin.c"
 #include "recipe/os/APT/deepin.c"
 
@@ -124,11 +155,12 @@ Chsrc_Usage[] = {
 
   "选项:",
   "-dry                      Dry Run，模拟换源过程，命令仅打印并不运行",
-  "-ipv6                     使用IPv6测速",
   "-local                    仅对本项目而非全局换源 (通过ls <target>查看支持情况)",
+  "-ipv6                     使用IPv6测速",
   "-en(glish)                使用英文输出",
   "-no-color                 无颜色输出\n",
 
+  "镜像站状态: <https://github.com/RubyMetric/chsrc/wiki>",
   "维护: <" Chsrc_Maintain_URL ">"
 };
 
@@ -156,12 +188,13 @@ Chsrc_Usage_English[] = {
 
   "Options:",
   "-dry                      Dry Run. Simulate the source changing process, command only prints, not run",
-  "-ipv6                     Speed measurement using IPv6",
   "-local                    Change source only for this project rather than globally (Via `ls <target>`)",
+  "-ipv6                     Speed measurement using IPv6",
   "-en(glish)                Output in English",
   "-no-color                 Output without color\n",
 
-  "Maintain: <" Chsrc_Maintain_URL ">"
+  "Mirror status: <https://github.com/RubyMetric/chsrc/wiki>",
+  "Maintain:      <" Chsrc_Maintain_URL ">"
 };
 
 
@@ -190,7 +223,7 @@ cli_print_available_mirrors ()
 
   for (int i = 0; i < xy_arylen (available_mirrors); i++)
     {
-      MirrorSite* mir = available_mirrors[i];
+      MirrorSite_t *mir = available_mirrors[i];
       printf ("%-14s%-18s%-41s ", mir->code, mir->abbr, mir->site); say (mir->name);
     }
 }
@@ -278,12 +311,12 @@ cli_print_supported_wr ()
  * 用于 chsrc list <target>
  */
 void
-cli_print_target_available_sources (SourceInfo sources[], size_t size)
+cli_print_target_available_sources (Source_t sources[], size_t size)
 {
   for (int i=0;i<size;i++)
     {
-      SourceInfo src = sources[i];
-      const MirrorSite *mir = src.mirror;
+      Source_t src = sources[i];
+      const MirrorSite_t *mir = src.mirror;
       if (NULL == src.url)
         {
           src.url = "Please help to add the upstream url!";
@@ -294,7 +327,7 @@ cli_print_target_available_sources (SourceInfo sources[], size_t size)
 }
 
 void
-cli_print_target_features (FeatInfo f, const char *input_target_name)
+cli_print_target_features (Feature_t f, const char *input_target_name)
 {
   {
   char *msg = CliOpt_InEnglish ? "\nAvailable Features:\n" : "\n可用功能:\n";
@@ -328,19 +361,19 @@ cli_print_target_features (FeatInfo f, const char *input_target_name)
   char *msg = CliOpt_InEnglish ? " Locally: Change source only for this project " : " Locally: 仅对本项目换源 ";
   char *locally_msg = xy_strjoin (3, msg, "| chsrc set -local ", input_target_name);
 
-  switch (f.stcan_locally)
+  switch (f.cap_locally)
     {
     case CanNot:
       printf (" %s%s\n", bdred(NoMark), locally_msg);br();
       break;
-    case CanFully:
+    case FullyCan:
       printf (" %s%s\n", bdgreen(YesMark), purple(locally_msg));br();
       break;
-    case CanSemi:
-      printf (" %s%s\n\n   %s\n", bdgreen(SemiYesMark), purple(locally_msg), f.locally);br();
+    case PartiallyCan:
+      printf (" %s%s\n\n   %s\n", bdgreen(HalfYesMark), purple(locally_msg), f.cap_locally_explain);br();
       break;
     default:
-      xy_unreach;
+      xy_unreached();
     }
   }
 
@@ -364,12 +397,12 @@ void
 cli_print_version ()
 {
   say ("chsrc " Chsrc_Version);
-  say ("Copyright (C) 2024 Aoran Zeng, Heng Guo");
+  say ("Copyright (C) 2025 Aoran Zeng, Heng Guo");
   say ("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>");
   say ("This is free software: you are free to change and redistribute it.");
   say ("There is NO WARRANTY, to the extent permitted by law.");
   br();
-  say ("Written by Aoran Zeng, Heng Guo and contributors. (See chsrc.c)");
+  say ("Written by Aoran Zeng, Heng Guo and contributors. (See chsrc-main.c)");
 }
 
 
@@ -377,7 +410,7 @@ void
 cli_print_help ()
 {
   say (xy_strjoin (3, "chsrc: Change Source (GPLv3+) ",
-                   purple (Chsrc_Banner_Version), " by RubyMetric"));
+                   purple("v" Chsrc_Version "-" Chsrc_Release_Date), " by RubyMetric"));
   br();
 
   if (CliOpt_InEnglish)
@@ -396,10 +429,13 @@ void
 cli_print_issues ()
 {
   say (
-  "chsrc issues: Gitee and GitHub accept issues both sides\n\n"
+  "We accept issues both sides on Gitee and Github\n\n"
   "- https://gitee.com/RubyMetric/chsrc/issues\n"
   "- https://github.com/RubyMetric/chsrc/issues\n"
   );
+
+  say ("Latest Mirror site status wiki:\n\n"
+       "- https://github.com/RubyMetric/chsrc/wiki\n");
 
   /*
   if (chsrc_check_program ("gh"))
@@ -491,22 +527,22 @@ get_target (const char *input, TargetOp code, char *option)
 
   if (!matched) return false;
 
-  TargetInfo *target = (TargetInfo*) *target_tmp;
+  Target_t *target = (Target_t*) *target_tmp;
 
   if (TargetOp_Set_Source==code)
     {
       if (target->setfn) target->setfn(option);
-      else chsrc_error (xy_strjoin (3, "暂未对 ", input, " 实现set功能，邀您帮助: chsrc issue"));
+      else chsrc_error (xy_strjoin (3, "暂未对 ", input, " 实现 set 功能，邀您帮助: chsrc issue"));
     }
   else if (TargetOp_Reset_Source==code)
     {
       if (target->resetfn) target->resetfn(option);
-      else chsrc_error (xy_strjoin (3, "暂未对 ", input, " 实现reset功能，邀您帮助: chsrc issue"));
+      else chsrc_error (xy_strjoin (3, "暂未对 ", input, " 实现 reset 功能，邀您帮助: chsrc issue"));
     }
   else if (TargetOp_Get_Source==code)
     {
       if (target->getfn) target->getfn("");
-      else chsrc_error (xy_strjoin (3, "暂未对 ", input, " 实现get功能，邀您帮助: chsrc issue"));
+      else chsrc_error (xy_strjoin (3, "暂未对 ", input, " 实现 get 功能，邀您帮助: chsrc issue"));
     }
   else if (TargetOp_List_Config==code)
     {
@@ -533,13 +569,13 @@ get_target (const char *input, TargetOp code, char *option)
 
       if (target->featfn)
         {
-          FeatInfo fi = target->featfn("");
-          cli_print_target_features (fi, input);
+          Feature_t f = target->featfn("");
+          cli_print_target_features (f, input);
         }
     }
   else if (TargetOp_Measure_Source==code)
     {
-      auto_select_ (target->sources, target->sources_n, input);
+      select_mirror_autoly (target->sources, target->sources_n, input);
       return true;
     }
   return true;
@@ -554,7 +590,7 @@ main (int argc, char const *argv[])
   if (0==argc)
     {
       cli_print_help ();
-      return 0;
+      return Exit_OK;
     }
 
   const char *command = argv[1];
@@ -603,13 +639,13 @@ main (int argc, char const *argv[])
               CliOpt_NoColor = true;
               xy_enable_color = false;
             }
-          else if (xy_streql     (argv[i], "-h")
+          else if (    xy_streql (argv[i], "-h")
                     || xy_streql (argv[i], "-help")
                     || xy_streql (argv[i], "--help"))
             {
               command = "help"; /* 交到下方处理 */
             }
-          else if (xy_streql (argv[i], "-v")
+          else if (    xy_streql (argv[i], "-v")
                     || xy_streql (command, "-version")
                     || xy_streql (command, "--version"))
             {
@@ -618,7 +654,7 @@ main (int argc, char const *argv[])
           else
             {
               char *msg = CliOpt_InEnglish ? "Unknown option: " : "未识别的命令行选项 ";
-              chsrc_error (xy_2strjoin (msg, argv[i])); return 1;
+              chsrc_error (xy_2strjoin (msg, argv[i])); return Exit_Unknown;
             }
           cli_arg_Target_pos++;
           cli_arg_Mirror_pos++;
@@ -630,37 +666,37 @@ main (int argc, char const *argv[])
 
   if (CliOpt_DryRun)
     {
-      char *dry_msg = CliOpt_InEnglish ? "** Enable [Dry Run] mode. " \
+      char *dry_msg = CliOpt_InEnglish ? "Enable [Dry Run] mode. " \
                                          "Simulate the source changing process (skipping speed measurement). " \
-                                         "Commands only print but don't run **\n"
-                                       : "**开启Dry Run模式，模拟换源过程(跳过测速)，命令仅打印并不运行**\n";
+                                         "Commands only print but don't run\n"
+                                       : "开启Dry Run模式，模拟换源过程(跳过测速)，命令仅打印并不运行\n";
       chsrc_log (bdyellow(dry_msg));
     }
 
   /* chsrc help */
-  if (xy_streql    (command, "h")
+  if (   xy_streql (command, "h")
       || xy_streql (command, "-h")
       || xy_streql (command, "help")
       || xy_streql (command, "-help")
       || xy_streql (command, "--help"))
     {
       cli_print_help ();
-      return 0;
+      return Exit_OK;
     }
 
   /* chsrc -v */
-  else if (xy_streql    (command, "-v")
+  else if (   xy_streql (command, "-v")
            || xy_streql (command, "-version")
            || xy_streql (command, "--version")
            || xy_streql (command, "ver")
            || xy_streql (command, "version"))
     {
       cli_print_version ();
-      return 0;
+      return Exit_OK;
     }
 
   /* chsrc list */
-  else if (xy_streql    (command, "list")
+  else if (   xy_streql (command, "list")
            || xy_streql (command, "l")
            || xy_streql (command, "ls"))
     {
@@ -675,36 +711,36 @@ main (int argc, char const *argv[])
           target = argv[cli_arg_Target_pos];
           if (xy_streql (target, "mirrors") || xy_streql (target, "mirror"))
             {
-              cli_print_available_mirrors (); return 0;
+              cli_print_available_mirrors (); return Exit_OK;
             }
           else if (xy_streql (target, "targets") || xy_streql (target, "target"))
             {
-              cli_print_supported_targets (); return 0;
+              cli_print_supported_targets (); return Exit_OK;
             }
           else if (xy_streql (target, "os"))
             {
-              cli_print_supported_os (); return 0;
+              cli_print_supported_os (); return Exit_OK;
             }
           else if (xy_streql (target, "lang") || xy_streql (target, "pl") || xy_streql (target, "language"))
             {
-              cli_print_supported_pl(); return 0;
+              cli_print_supported_pl(); return Exit_OK;
             }
           else if (xy_streql (target, "ware") || xy_streql (target, "software"))
             {
-              cli_print_supported_wr (); return 0;
+              cli_print_supported_wr (); return Exit_OK;
             }
 
           matched = get_target (target, TargetOp_List_Config, NULL);
           if (!matched) goto not_matched;
         }
-      return 0;
+      return Exit_OK;
   }
 
 #define MSG_EN_USE_LIST_TARGETS "Use `chsrc list targets` to see all supported targets"
 #define MSG_CN_USE_LIST_TARGETS "使用 chsrc list targets 查看所有支持的目标"
 
   /* chsrc measure */
-  else if (xy_streql    (command, "measure")
+  else if (   xy_streql (command, "measure")
            || xy_streql (command, "mea")
            || xy_streql (command, "m")
            || xy_streql (command, "cesu")
@@ -716,17 +752,18 @@ main (int argc, char const *argv[])
           char *msg = CliOpt_InEnglish ? "Please provide the target name you want to measure. " MSG_EN_USE_LIST_TARGETS
                                        : "请您提供想要测速源的目标名。" MSG_CN_USE_LIST_TARGETS;
           chsrc_error (msg);
-          return 1;
+          return Exit_Unknown;
         }
+      ProgMode_CMD_Measure = true;
       target = argv[cli_arg_Target_pos];
       matched = get_target (target, TargetOp_Measure_Source, NULL);
       if (!matched) goto not_matched;
-      return 0;
+      return Exit_OK;
     }
 
 
   /* chsrc get */
-  else if (xy_streql    (command, "get")
+  else if (   xy_streql (command, "get")
            || xy_streql (command, "g"))
     {
       if (argc < cli_arg_Target_pos)
@@ -734,16 +771,16 @@ main (int argc, char const *argv[])
           char *msg = CliOpt_InEnglish ? "Please provide the target name you want to view the source. " MSG_EN_USE_LIST_TARGETS
                                        : "请您提供想要查看源的目标名。" MSG_CN_USE_LIST_TARGETS;
           chsrc_error (msg);
-          return 1;
+          return Exit_Unknown;
         }
       target = argv[cli_arg_Target_pos];
       matched = get_target (target, TargetOp_Get_Source, NULL);
       if (!matched) goto not_matched;
-      return 0;
+      return Exit_OK;
     }
 
   /* chsrc set */
-  else if (xy_streql    (command, "set")
+  else if (   xy_streql (command, "set")
            || xy_streql (command, "s"))
     {
       if (argc < cli_arg_Target_pos)
@@ -751,7 +788,7 @@ main (int argc, char const *argv[])
           char *msg = CliOpt_InEnglish ? "Please provide the target name you want to set the source. " MSG_EN_USE_LIST_TARGETS
                                        : "请您提供想要设置源的目标名。" MSG_CN_USE_LIST_TARGETS;
           chsrc_error (msg);
-          return 1;
+          return Exit_Unknown;
         }
 
       target = argv[cli_arg_Target_pos];
@@ -763,11 +800,11 @@ main (int argc, char const *argv[])
 
       matched = get_target (target, TargetOp_Set_Source, mirrorCode_or_url);
       if (!matched) goto not_matched;
-      return 0;
+      return Exit_OK;
     }
 
   /* chsrc reset */
-  else if (xy_streql    (command, "reset")
+  else if (   xy_streql (command, "reset")
            || xy_streql (command, "rest")
            || xy_streql (command, "r"))
     {
@@ -776,40 +813,40 @@ main (int argc, char const *argv[])
           char *msg = CliOpt_InEnglish ? "Please provide the target name you want to reset the source. " MSG_EN_USE_LIST_TARGETS
                                        : "请您提供想要重置源的目标名。" MSG_CN_USE_LIST_TARGETS;
           chsrc_error (msg);
-          return 1;
+          return Exit_Unknown;
         }
 
+      ProgMode_CMD_Reset = true;
       target = argv[cli_arg_Target_pos];
       matched = get_target (target, TargetOp_Reset_Source, NULL);
       if (!matched) goto not_matched;
-      return 0;
+      return Exit_OK;
     }
 
-    /* chsrc issue */
-  else if (xy_streql    (command, "issue")
+  /* chsrc issue */
+  else if (   xy_streql (command, "issue")
            || xy_streql (command, "issues")
            || xy_streql (command, "isue")
            || xy_streql (command, "i"))
     {
       cli_print_issues ();
-      return 0;
+      return Exit_OK;
     }
 
-  /* 不支持的命令 */
   else
     {
-      char *msg1 = CliOpt_InEnglish ? "Unsupported command `" : "不支持的命令 ";
+      char *msg1 = CliOpt_InEnglish ? "Unknown command `" : "不支持的命令 ";
       char *msg2 = CliOpt_InEnglish ? "`. Use `chsrc help` to view usage" : ". 请使用 chsrc help 查看使用方式";
       chsrc_error (xy_strjoin (3, msg1, command, msg2));
-      return 1;
+      return Exit_Unknown;
     }
 
 not_matched:
   if (!matched)
     {
-      char *msg = CliOpt_InEnglish ? "Unsupported target. " MSG_EN_USE_LIST_TARGETS
-                                   : "暂不支持的换源目标。"    MSG_CN_USE_LIST_TARGETS;
+      char *msg = CliOpt_InEnglish ? "Unknown target. "  MSG_EN_USE_LIST_TARGETS
+                                   : "暂不支持的换源目标。" MSG_CN_USE_LIST_TARGETS;
       chsrc_error (msg);
-      return 1;
+      return Exit_Unknown;
     }
 }

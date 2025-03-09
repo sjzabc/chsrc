@@ -8,16 +8,16 @@
  * ------------------------------------------------------------*/
 
 /**
- * @time 2023-09-22 更新
+ * @update 2023-09-22
  * @note {
  *   1. 目前只有一个源
  *   2. 这些链接将会在setsrc函数中补充完整
  * }
  */
-static SourceInfo
-wr_nix_sources[] = {
-  {&Upstream,       NULL},
-  {&Bfsu,          "https://mirrors.bfsu.edu.cn/nix-channels/"}
+static Source_t wr_nix_sources[] =
+{
+  {&UpstreamProvider,  NULL},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/nix-channels/"}
 };
 def_sources_n(wr_nix);
 
@@ -43,20 +43,21 @@ wr_nix_setsrc (char *option)
   char *cmd = xy_strjoin (3, "nix-channel --add ", source.url, "nixpkgs-unstable nixpkgs");
   chsrc_run (cmd, RunOpt_Default);
 
-  char *towrite = xy_strjoin (3, "substituters = ", source.url, "store https://cache.nixos.org/");
-  chsrc_append_to_file (towrite , "~/.config/nix/nix.conf");
+  char *w = xy_strjoin (3, "substituters = ", source.url, "store https://cache.nixos.org/");
+  chsrc_append_to_file (w, "~/.config/nix/nix.conf");
 
   chsrc_run ("nix-channel --update", RunOpt_Default);
 
   chsrc_note2 ("若您使用的是NixOS，请确认您的系统版本<version>（如22.11），并手动运行:");
   cmd = xy_strjoin (3, "nix-channel --add ", source.url, "nixpkgs-<version> nixpkgs");
-  puts (cmd);
+  p(cmd);
 
   cmd = xy_strjoin (3, "nix.settings.substituters = [ \"", source.url, "store\" ];");
   chsrc_note2 ("若您使用的是NixOS，请额外添加下述内容至 configuration.nix 中");
-  puts (cmd);
+  p(cmd);
 
-  chsrc_conclude (&source, ChsrcTypeSemiAuto);
+  chsrc_determine_chgtype (ChgType_SemiAuto);
+  chsrc_conclude (&source);
 }
 
 def_target_s (wr_nix);

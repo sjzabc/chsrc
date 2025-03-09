@@ -3,25 +3,35 @@
  * -------------------------------------------------------------
  * File Authors  : Aoran Zeng <ccmywish@qq.com>
  *               |  Heng Guo  <2085471348@qq.com>
- * Contributors  :  Nil Null  <nil@null.org>
+ * Contributors  : Yangmoooo <yangmoooo@outlook.com>
+ *               |
  * Created On    : <2023-09-02>
- * Last Modified : <2024-08-16>
+ * Last Modified : <2024-12-18>
  * ------------------------------------------------------------*/
 
+static SourceProvider_t os_debian_upstream =
+{
+  def_upstream, "https://ftp.debian.org/debian/",
+  {NotSkip, NA, NA, "https://ftp.debian.org/debian/dists/bookworm/main/Contents-all.gz"} // 32MB
+};
+
+
 /**
- * @time 2024-06-12 更新
+ * @update 2024-11-21
  */
-static SourceInfo
-os_debian_sources[] = {
-  {&Upstream,       NULL},
-  {&Ali,           "https://mirrors.aliyun.com/debian"},
-  {&Volcengine,    "https://mirrors.volces.com/debian"},
-  {&Bfsu,          "https://mirrors.bfsu.edu.cn/debian"},
-  {&Ustc,          "https://mirrors.ustc.edu.cn/debian"},
-  {&Tuna,          "https://mirrors.tuna.tsinghua.edu.cn/debian"},
-  {&Tencent,       "https://mirrors.tencent.com/debian"},
-  {&Netease,       "https://mirrors.163.com/debian"},
-  {&Sohu,          "https://mirrors.sohu.com/debian"}
+static Source_t os_debian_sources[] =
+{
+  {&os_debian_upstream, "http://deb.debian.org/debian"},
+  {&MirrorZ,          "https://mirrors.cernet.edu.cn/debian/"},
+  {&Ali,              "https://mirrors.aliyun.com/debian"},
+  {&Volcengine,       "https://mirrors.volces.com/debian"},
+  {&Bfsu,             "https://mirrors.bfsu.edu.cn/debian"},
+  {&Ustc,             "https://mirrors.ustc.edu.cn/debian"},
+  {&Tuna,             "https://mirrors.tuna.tsinghua.edu.cn/debian"},
+  {&Tencent,          "https://mirrors.tencent.com/debian"},
+  // {&Tencent_Intra, "https://mirrors.tencentyun.com/debian"},
+  {&Netease,          "https://mirrors.163.com/debian"},
+  {&Sohu,             "https://mirrors.sohu.com/debian"}
 };
 def_sources_n(os_debian);
 
@@ -63,7 +73,9 @@ os_debian_setsrc_for_deb822 (char *option)
   chsrc_run (cmd, RunOpt_Default);
 
   chsrc_run ("apt update", RunOpt_No_Last_New_Line);
-  chsrc_conclude (&source, ChsrcTypeAuto);
+
+  chsrc_determine_chgtype (ChgType_Auto);
+  chsrc_conclude (&source);
 }
 
 
@@ -102,7 +114,35 @@ os_debian_setsrc (char *option)
 
   chsrc_run (cmd, RunOpt_Default);
   chsrc_run ("apt update", RunOpt_No_Last_New_Line);
-  chsrc_conclude (&source, ChsrcTypeAuto);
+
+  chsrc_determine_chgtype (ChgType_Auto);
+  chsrc_conclude (&source);
 }
 
-def_target(os_debian);
+
+void
+os_debian_resetsrc (char* option)
+{
+  os_debian_setsrc (option);
+}
+
+
+Feature_t
+os_debian_feat (char *option)
+{
+  Feature_t f = {0};
+
+  f.can_get = true;
+  f.can_reset = true;
+
+  f.cap_locally = CanNot;
+  f.cap_locally_explain = NULL;
+  f.can_english = false;
+  f.can_user_define = true;
+
+  f.note = NULL;
+  return f;
+}
+
+def_target_gsrf(os_debian);
+
